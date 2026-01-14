@@ -4,6 +4,9 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <cerrno>
+#include <cstring>
+#include <sstream>
 
 struct GpioLine::Impl {
     gpiod_chip* chip{nullptr};
@@ -11,23 +14,34 @@ struct GpioLine::Impl {
     bool is_output{false};
 };
 
-static void fail(const char* msg) { throw std::runtime_error(msg); }
+static std::runtime_error gpiod_err(const std::string& what) {
+    std::ostringstream oss;
+    oss << what << " (errno=" << errno << ": " << std::strerror(errno) << ")";
+    return std::runtime_error(oss.str());
+}
 
-GpioLine::GpioLine(int line_offset, bool output, bool initial_value, std::string chip_path, std::string consumer) {
+GpioLine::GpioLine(int line_offset, bool output, bool initial_value,
+                   std::string chip_path, std::string consumer) {
     impl_ = new Impl();
+    errno = 0;
     impl_->chip = gpiod_chip_open(chip_path.c_str());
-    if (!impl_->chip) fail("Failed to open gpio chip");
+    if (!impl_->chip) throw gpiod_err("Failed to open gpio chip " + chip_path);
 
+    errno = 0;
     impl_->line = gpiod_chip_get_line(impl_->chip, line_offset);
-    if (!impl_->line) fail("Failed to get gpio line");
+    if (!impl_->line) throw gpiod_err("Failed to get gpio line offset " + std::to_string(line_offset));
 
     impl_->is_output = output;
     if (output) {
-        if (gpiod_line_request_output(impl_->line, consumer.c_str(), initial_value ? 1 : 0) != 0)
-            fail("Failed to request output line");
+        errno = 0;
+        if (gpiod_line_request_output(impl_->line, consumer.c_str(), initial_value ? 1 : 0) != 0) {
+            throw gpiod_err("Failed to request output line " + std::to_string(line_offset));
+        }
     } else {
-        if (gpiod_line_request_input(impl_->line, consumer.c_str()) != 0)
-            fail("Failed to request input line");
+        errno = 0;
+        if (gpiod_line_request_input(impl_->line, consumer.c_str()) != 0) {
+            throw gpiod_err("Failed to request input line " + std::to_string(line_offset));
+        }
     }
 }
 
@@ -40,13 +54,15 @@ GpioLine::~GpioLine() {
 }
 
 void GpioLine::set(bool value) {
-    if (!impl_->is_output) fail("Line is not output");
-    if (gpiod_line_set_value(impl_->line, value ? 1 : 0) != 0) fail("Failed to set value");
+    if (!impl_->is_output) throw std::runtime_error("GPIO line is not output");
+    errno = 0;
+    if (gpiod_line_set_value(impl_->line, value ? 1 : 0) != 0) throw gpiod_err("Failed to set gpio value");
 }
 
 bool GpioLine::get() const {
+    errno = 0;
     int v = gpiod_line_get_value(impl_->line);
-    if (v < 0) fail("Failed to get value");
+    if (v < 0) throw gpiod_err("Failed to read gpio value");
     return v != 0;
 }
 

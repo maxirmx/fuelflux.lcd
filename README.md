@@ -104,3 +104,13 @@ Edit `/etc/nhd12864/nhd12864.conf` if needed.
 - If SPI is noisy: reduce speed in `src/main_demo.cpp` (`spi.open(8000000, 0)` → 1000000).
 
 MIT License in `LICENSE`.
+
+
+## GPIO request troubleshooting
+
+Rebuild and run the probe to see the real kernel error:
+
+```bash
+cmake --build build -j
+sudo ./build/nhd12864_probe --chip /dev/gpiochip0 --line 25
+```
