@@ -1,5 +1,9 @@
 # NHD-C12864A1Z-FSW-FBW-HTT on Orange Pi Zero 2W (C++)
 
+This repository contains:
+1. **Four Line Display Library** - A reusable high-level API for managing 4-line displays with mixed font sizes
+2. **Low-level Hardware Driver** - ST7565 LCD driver with SPI and GPIO support
+
 This is a **C++** bundle for Orange Pi Zero 2W + Armbian/Ubuntu, using:
 - SPI via Linux **spidev** (`/dev/spidev1.0` recommended on Zero 2W header)
 - GPIO via **libgpiod** (`/dev/gpiochip*`)
@@ -104,4 +108,119 @@ Run with explicit font/size:
 ```bash
 sudo ./build/nhd12864_demo --spidev /dev/spidev1.0 --chip /dev/gpiochip0 --dc 262 --rst 226 \
   --font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf --px 16
+```
+
+## Four Line Display Library
+
+The **FourLineDisplay** library provides a high-level, reusable API for managing displays with 4 lines:
+- **Line 0**: Small font (default: 12px)
+- **Line 1**: Large font (default: 28px)
+- **Line 2**: Small font (default: 12px)
+- **Line 3**: Small font (default: 12px)
+
+### API Reference
+
+```cpp
+#include "four_line_display.h"
+
+// Constructor
+FourLineDisplay(int width = 128, int height = 64, 
+                int small_font_size = 12, int large_font_size = 28);
+
+// Initialize the library with a font file
+bool initialize(const std::string& font_path);
+
+// Uninitialize and cleanup
+void uninitialize();
+
+// Get maximum characters per line
+unsigned int length(unsigned int line_id);
+
+// Set text for a line (line_id: 0-3)
+void puts(unsigned int line_id, const std::string& text);
+
+// Get current text
+std::string get_text(unsigned int line_id) const;
+
+// Clear operations
+void clear_line(unsigned int line_id);
+void clear_all();
+
+// Render to framebuffer
+const std::vector<unsigned char>& render();
+```
+
+### Example Usage
+
+```cpp
+#include "four_line_display.h"
+#include "st7565.h"
+
+// Create display (128x64, small font 12px, large font 28px)
+FourLineDisplay display(128, 64, 12, 28);
+
+// Initialize with font
+if (!display.initialize("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")) {
+    std::cerr << "Failed to initialize display\n";
+    return 1;
+}
+
+// Check line capacities
+std::cout << "Line 0 can hold " << display.length(0) << " chars\n";
+std::cout << "Line 1 can hold " << display.length(1) << " chars\n";
+
+// Set content
+display.puts(0, "Status: OK");
+display.puts(1, "Temp: 25°C");
+display.puts(2, "Pressure: 1013");
+display.puts(3, "Ver 2.0");
+
+// Render and send to LCD
+const auto& framebuffer = display.render();
+lcd.set_framebuffer(framebuffer);
+
+// Cleanup
+display.uninitialize();
+```
+
+### Four Line Demo
+
+Run the dedicated four-line demo:
+
+```bash
+sudo ./build/nhd12864_fourline_demo --spidev /dev/spidev0.0 --chip /dev/gpiochip0 \
+  --dc 25 --rst 17 --font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+```
+
+## Testing
+
+The library includes comprehensive unit tests using GoogleTest.
+
+### Build Tests
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+cmake --build build -j
+```
+
+### Run Tests
+
+```bash
+./build/test_four_line_display
+```
+
+Or with CTest:
+
+```bash
+cd build
+ctest --output-on-failure
+```
+
+### Disable Tests
+
+To build without tests:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
+cmake --build build -j
 ```
