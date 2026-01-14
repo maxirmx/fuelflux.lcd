@@ -1,8 +1,7 @@
+#include "four_line_display.h"
 #include "spi_linux.h"
 #include "gpio_gpiod.h"
 #include "st7565.h"
-#include "graphics.h"
-#include "ft_text.h"
 
 #include <iostream>
 #include <thread>
@@ -15,6 +14,7 @@ static const char* argval(int argc, char** argv, const char* key, const char* de
     }
     return defv;
 }
+
 static int argint(int argc, char** argv, const char* key, int defv) {
     const char* v = argval(argc, argv, key, nullptr);
     return v ? std::stoi(v) : defv;
@@ -26,10 +26,11 @@ int main(int argc, char** argv) {
     int dc  = argint(argc, argv, "--dc", 262);
     int rst = argint(argc, argv, "--rst", 226);
 
-    std::string font = argval(argc, argv, "--font", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
-    int px = argint(argc, argv, "--px", 16);
+    // The other suggested option is: "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+    std::string font = argval(argc, argv, "--font", "/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf");
 
     try {
+        // Initialize hardware
         SpiLinux spi(dev);
         spi.open(8000000, 0);
 
@@ -40,30 +41,39 @@ int main(int argc, char** argv) {
         lcd.reset();
         lcd.init();
 
-        MonoGfx g(128, 64);
-        FtText ft;
-        ft.load_font(font);
-        ft.set_pixel_size(px);
-
-        int t = 0;
-        while (true) {
-            g.clear();
-
-            // 8x16-like layout: 4 lines visible at px=16 (64px height)
-            // Demonstrate full English + Russian (incl. Ё/ё).
-            std::string l1 = "Hello, World!";
-            std::string l2 = "Привет, мир!";
-            std::string l3 = "Ёжик, съёмка";
-            std::string l4 = "t=" + std::to_string(t++);
-
-            ft.draw_utf8(g.fb(), 128, 64, 0, 0,  l1, true);
-            ft.draw_utf8(g.fb(), 128, 64, 0, 16, l2, true);
-            ft.draw_utf8(g.fb(), 128, 64, 0, 32, l3, true);
-            ft.draw_utf8(g.fb(), 128, 64, 0, 48, l4, true);
-
-            lcd.set_framebuffer(g.fb());
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // Initialize the Four Line Display library
+        FourLineDisplay display(128, 64, 12, 28);
+        
+        if (!display.initialize(font)) {
+            std::cerr << "Failed to initialize FourLineDisplay library\n";
+            std::cerr << "  - Verify font exists: " << font << "\n";
+            return 1;
         }
+
+        std::cout << "Four Line Display Demo\n";
+        std::cout << "======================\n";
+        std::cout << "Line 0 (small): max " << display.length(0) << " chars\n";
+        std::cout << "Line 1 (large): max " << display.length(1) << " chars\n";
+        std::cout << "Line 2 (small): max " << display.length(2) << " chars\n";
+        std::cout << "Line 3 (small): max " << display.length(3) << " chars\n";
+        std::cout << "\nPress Ctrl+C to exit...\n\n";
+
+        int counter = 0;
+        while (true) {
+            // Update display content
+            display.puts(0, "Status: Running");
+            display.puts(1, "Count: " + std::to_string(counter));
+            display.puts(2, "FuelFlux NHD");
+            display.puts(3, "Ver 2.0");
+
+            // Render and send to LCD
+            const auto& fb = display.render();
+            lcd.set_framebuffer(fb);
+
+            counter++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         std::cerr << "Hints:\n";
@@ -72,4 +82,6 @@ int main(int argc, char** argv) {
         std::cerr << "  - Verify GPIO line offsets (libgpiod) using gpio readall/gpioinfo.\n";
         return 1;
     }
+
+    return 0;
 }
