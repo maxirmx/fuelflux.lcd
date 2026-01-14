@@ -1,1 +1,0 @@
-/home/runner/work/fuelflux.nhd/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/nhd12864_gpio.dir/link.d CMakeFiles/nhd12864_gpio.dir/src/main_gpio.cpp.o -o nhd12864_gpio  libnhd12864.a -lgpiod -lfreetype
