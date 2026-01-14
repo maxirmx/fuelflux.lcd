@@ -36,3 +36,6 @@ jobs:
       run: |
         test -f build/nhd12864_demo || (echo "nhd12864_demo not found" && exit 1)
         echo "Build successful - nhd12864_demo created"
+    
+    - name: Run tests
+      run: cd build && ctest --output-on-failure
