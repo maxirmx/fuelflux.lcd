@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <memory>
 
 // Minimal FreeType-based UTF-8 text renderer into a 1bpp framebuffer (page layout)
 // Intended for 128x64 LCDs. Use a monospace font for predictable layout.
@@ -27,5 +28,5 @@ public:
 
 private:
     struct Impl;
-    Impl* impl_;
+    std::unique_ptr<Impl> impl_;
 };
