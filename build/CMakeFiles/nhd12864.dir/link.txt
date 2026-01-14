@@ -1,2 +1,0 @@
-/usr/bin/ar qc libnhd12864.a CMakeFiles/nhd12864.dir/src/spi_linux.cpp.o CMakeFiles/nhd12864.dir/src/gpio_gpiod.cpp.o CMakeFiles/nhd12864.dir/src/st7565.cpp.o CMakeFiles/nhd12864.dir/src/graphics.cpp.o CMakeFiles/nhd12864.dir/src/ft_text.cpp.o
-/usr/bin/ranlib libnhd12864.a
