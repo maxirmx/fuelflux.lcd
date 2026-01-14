@@ -8,29 +8,29 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GPIOD REQUIRED libgpiod)
 pkg_check_modules(FREETYPE REQUIRED freetype2)
 
-# Base hardware library (low-level drivers)
-add_library(nhd12864
+# Tools library (generic SPI and GPIO functions)
+add_library(tools
     src/spi_linux.cpp
     src/gpio_gpiod.cpp
+)
+target_include_directories(tools PUBLIC include ${GPIOD_INCLUDE_DIRS})
+target_link_libraries(tools PUBLIC ${GPIOD_LIBRARIES})
+target_compile_options(tools PRIVATE -Wall -Wextra -Wpedantic)
+
+# NHD12864 library (display-specific code)
+add_library(nhd12864
     src/st7565.cpp
     src/graphics.cpp
     src/ft_text.cpp
-)
-target_include_directories(nhd12864 PUBLIC include ${GPIOD_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
-target_link_libraries(nhd12864 PUBLIC ${GPIOD_LIBRARIES} ${FREETYPE_LIBRARIES})
-target_compile_options(nhd12864 PRIVATE -Wall -Wextra -Wpedantic)
-
-# Four Line Display Library (reusable high-level API)
-add_library(four_line_display
     src/four_line_display.cpp
 )
-target_include_directories(four_line_display PUBLIC include)
-target_link_libraries(four_line_display PUBLIC nhd12864)
-target_compile_options(four_line_display PRIVATE -Wall -Wextra -Wpedantic)
+target_include_directories(nhd12864 PUBLIC include ${FREETYPE_INCLUDE_DIRS})
+target_link_libraries(nhd12864 PUBLIC tools ${FREETYPE_LIBRARIES})
+target_compile_options(nhd12864 PRIVATE -Wall -Wextra -Wpedantic)
 
 # Demo executable
 add_executable(nhd12864_demo src/main_demo.cpp)
-target_link_libraries(nhd12864_demo PRIVATE four_line_display nhd12864)
+target_link_libraries(nhd12864_demo PRIVATE nhd12864 tools)
 
 # Testing with GoogleTest
 option(BUILD_TESTS "Build the tests" ON)
@@ -55,8 +55,8 @@ if(BUILD_TESTS)
     )
     target_link_libraries(test_four_line_display
         PRIVATE
-        four_line_display
         nhd12864
+        tools
         GTest::gtest
         GTest::gtest_main
     )
