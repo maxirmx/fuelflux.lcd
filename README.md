@@ -81,20 +81,6 @@ LCD demo (requires root for GPIO access on most setups):
 sudo ./build/nhd12864_demo --spidev /dev/spidev0.0 --chip /dev/gpiochip0 --dc 25 --rst 17
 ```
 
-Backlight/heater helper:
-```bash
-sudo ./build/nhd12864_gpio --chip /dev/gpiochip0 --bl-pin 18 --heater-pin 23 --bl-duty 40 --heater-on 0
-```
-
-## 7) Install as a service (optional)
-
-```bash
-sudo ./scripts/install.sh
-sudo systemctl enable --now nhd12864-demo.service
-```
-
-Edit `/etc/nhd12864/nhd12864.conf` if needed.
-
 ## Troubleshooting
 
 - If the LCD is blank: confirm `/dev/spidev0.0` exists and wiring of **A0/DC** and **RST** is correct.
@@ -104,16 +90,6 @@ Edit `/etc/nhd12864/nhd12864.conf` if needed.
 - If SPI is noisy: reduce speed in `src/main_demo.cpp` (`spi.open(8000000, 0)` → 1000000).
 
 MIT License in `LICENSE`.
-
-
-## GPIO request troubleshooting
-
-Rebuild and run the probe to see the real kernel error:
-
-```bash
-cmake --build build -j
-sudo ./build/nhd12864_probe --chip /dev/gpiochip0 --line 25
-```
 
 
 ## UTF-8 (English + Russian/Cyrillic) rendering
