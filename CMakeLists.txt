@@ -35,12 +35,6 @@ target_link_libraries(nhd12864_demo PRIVATE nhd12864)
 add_executable(nhd12864_fourline_demo src/main_fourline_demo.cpp)
 target_link_libraries(nhd12864_fourline_demo PRIVATE four_line_display nhd12864)
 
-add_executable(nhd12864_gpio src/main_gpio.cpp)
-target_link_libraries(nhd12864_gpio PRIVATE nhd12864)
-
-add_executable(nhd12864_probe src/main_probe.cpp)
-target_link_libraries(nhd12864_probe PRIVATE nhd12864)
-
 # Testing with GoogleTest
 option(BUILD_TESTS "Build the tests" ON)
 
