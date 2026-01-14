@@ -76,8 +76,9 @@ static const uint8_t font5x7[96][5] = {
 };
 
 void MonoGfx::draw_char(int x, int y, char c, bool on) {
-    if (c < 32 || c > 127) c = '?';
-    const uint8_t* g = font5x7[c - 32];
+    unsigned char uc = static_cast<unsigned char>(c);
+    if (uc < 32 || uc > 127) uc = '?';
+    const uint8_t* g = font5x7[uc - 32];
     for (int col = 0; col < 5; ++col) {
         uint8_t bits = g[col];
         for (int row = 0; row < 7; ++row) {

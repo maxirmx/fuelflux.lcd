@@ -64,16 +64,21 @@ static uint32_t next_cp(const std::string& s, size_t& i) {
         return cp;
     }
     if ((c & 0xF0) == 0xE0 && i + 1 < s.size()) {
+        uint32_t b1 = s[i++] & 0x3F;
+        uint32_t b2 = s[i++] & 0x3F;
         uint32_t cp = ((uint32_t)(c & 0x0F) << 12) |
-                      ((uint32_t)(s[i++] & 0x3F) << 6) |
-                      ((uint32_t)(s[i++] & 0x3F));
+                      (b1 << 6) |
+                      b2;
         return cp;
     }
     if ((c & 0xF8) == 0xF0 && i + 2 < s.size()) {
+        uint32_t b1 = s[i++] & 0x3F;
+        uint32_t b2 = s[i++] & 0x3F;
+        uint32_t b3 = s[i++] & 0x3F;
         uint32_t cp = ((uint32_t)(c & 0x07) << 18) |
-                      ((uint32_t)(s[i++] & 0x3F) << 12) |
-                      ((uint32_t)(s[i++] & 0x3F) << 6) |
-                      ((uint32_t)(s[i++] & 0x3F));
+                      (b1 << 12) |
+                      (b2 << 6) |
+                      b3;
         return cp;
     }
     return 0xFFFD; // replacement
