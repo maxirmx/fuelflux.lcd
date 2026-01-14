@@ -28,12 +28,9 @@ target_include_directories(four_line_display PUBLIC include)
 target_link_libraries(four_line_display PUBLIC nhd12864)
 target_compile_options(four_line_display PRIVATE -Wall -Wextra -Wpedantic)
 
-# Demo executables
+# Demo executable
 add_executable(nhd12864_demo src/main_demo.cpp)
-target_link_libraries(nhd12864_demo PRIVATE nhd12864)
-
-add_executable(nhd12864_fourline_demo src/main_fourline_demo.cpp)
-target_link_libraries(nhd12864_fourline_demo PRIVATE four_line_display nhd12864)
+target_link_libraries(nhd12864_demo PRIVATE four_line_display nhd12864)
 
 # Testing with GoogleTest
 option(BUILD_TESTS "Build the tests" ON)
