@@ -2,7 +2,7 @@
 set -euo pipefail
 
 sudo apt update
-sudo apt install -y build-essential cmake pkg-config libgpiod-dev
+sudo apt install -y build-essential cmake pkg-config libgpiod-dev libfreetype6-dev fonts-dejavu-core
 
 mkdir -p build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
