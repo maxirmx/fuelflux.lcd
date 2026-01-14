@@ -81,14 +81,6 @@ LCD demo (requires root for GPIO access on most setups):
 sudo ./build/nhd12864_demo --spidev /dev/spidev0.0 --chip /dev/gpiochip0 --dc 25 --rst 17
 ```
 
-## 7) Install (optional)
-
-```bash
-sudo ./scripts/install.sh
-```
-
-Edit `/etc/nhd12864/nhd12864.conf` if needed.
-
 ## Troubleshooting
 
 - If the LCD is blank: confirm `/dev/spidev0.0` exists and wiring of **A0/DC** and **RST** is correct.
