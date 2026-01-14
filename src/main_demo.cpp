@@ -74,8 +74,6 @@ int main(int argc, char** argv) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
 
-        display.uninitialize();
-
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         std::cerr << "Hints:\n";
