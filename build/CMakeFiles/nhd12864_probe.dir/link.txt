@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/nhd12864_probe.dir/link.d CMakeFiles/nhd12864_probe.dir/src/main_probe.cpp.o -o nhd12864_probe  libnhd12864.a -lgpiod -lfreetype

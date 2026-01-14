@@ -1,6 +1,8 @@
 #include "ft_text.h"
 #include <stdexcept>
 #include <cstring>
+#include <cstdint>
+#include <memory>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -18,7 +20,7 @@ static void set_px(FT_Face face, int px) {
 }
 
 FtText::FtText() {
-    impl_ = new Impl();
+    impl_ = std::make_unique<Impl>();
     if (FT_Init_FreeType(&impl_->lib)) {
         throw std::runtime_error("FT_Init_FreeType failed");
     }
@@ -28,8 +30,6 @@ FtText::~FtText() {
     if (!impl_) return;
     if (impl_->face) FT_Done_Face(impl_->face);
     if (impl_->lib) FT_Done_FreeType(impl_->lib);
-    delete impl_;
-    impl_ = nullptr;
 }
 
 void FtText::load_font(const std::string& font_path) {
@@ -56,6 +56,7 @@ static inline void fb_set(std::vector<unsigned char>& fb, int w, int h, int x, i
 
 // Minimal UTF-8 decoder: returns next codepoint and advances i
 static uint32_t next_cp(const std::string& s, size_t& i) {
+    if (i >= s.size()) return 0xFFFD; // bounds check before access
     unsigned char c = (unsigned char)s[i++];
     if (c < 0x80) return c;
     if ((c & 0xE0) == 0xC0 && i < s.size()) {
