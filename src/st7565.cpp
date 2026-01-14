@@ -20,8 +20,8 @@ void St7565::init() {
     // ST7565-class init (good default for ST7565/ST7567 family)
     cmd(0xAE); // display OFF
     cmd(0xA2); // bias 1/9
-    cmd(0xA0); // SEG normal (A1 flips)
-    cmd(0xC0); // COM normal (C8 flips)
+    cmd(0xA0); // SEG normal (A0/A1 flips)
+    cmd(0xC8); // COM normal (C0/C8 flips)
     cmd(0x2F); // power: booster+regulator+follower ON
     cmd(0x26); // resistor ratio
     cmd(0x81); // electronic volume
