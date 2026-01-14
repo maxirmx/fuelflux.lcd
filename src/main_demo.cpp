@@ -26,7 +26,8 @@ int main(int argc, char** argv) {
     int dc  = argint(argc, argv, "--dc", 262);
     int rst = argint(argc, argv, "--rst", 226);
 
-    std::string font = argval(argc, argv, "--font", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
+    // The other suggested option is: "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+    std::string font = argval(argc, argv, "--font", "/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf");
 
     try {
         // Initialize hardware
