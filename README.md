@@ -1,7 +1,7 @@
 # NHD-C12864A1Z-FSW-FBW-HTT on Orange Pi Zero 2W (C++)
 
 This is a **C++** bundle for Orange Pi Zero 2W + Armbian/Ubuntu, using:
-- SPI via Linux **spidev** (`/dev/spidev0.0`)
+- SPI via Linux **spidev** (`/dev/spidev1.0` recommended on Zero 2W header)
 - GPIO via **libgpiod** (`/dev/gpiochip*`)
 - ST7565-class init + 128×64 framebuffer + tiny 5×7 font
 - Optional backlight PWM (software) and heater on/off (MOSFET) via GPIO
@@ -36,7 +36,7 @@ Using the same wiring as the Python bundle (header **physical** pin numbers):
 
 ```bash
 sudo apt update
-sudo apt install -y build-essential cmake pkg-config libgpiod-dev
+sudo apt install -y build-essential cmake pkg-config libgpiod-dev libfreetype6-dev fonts-dejavu-core
 ```
 
 ## 4) IMPORTANT: GPIO line numbering on Orange Pi
@@ -113,4 +113,19 @@ Rebuild and run the probe to see the real kernel error:
 ```bash
 cmake --build build -j
 sudo ./build/nhd12864_probe --chip /dev/gpiochip0 --line 25
+```
+
+
+## UTF-8 (English + Russian/Cyrillic) rendering
+
+This bundle now uses **FreeType** to render UTF-8 text (including Cyrillic and Ё/ё).
+
+Default font:
+- `/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf`
+
+Run with explicit font/size:
+
+```bash
+sudo ./build/nhd12864_demo --spidev /dev/spidev1.0 --chip /dev/gpiochip0 --dc 262 --rst 226 \
+  --font /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf --px 16
 ```

@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 EnvironmentFile=/etc/nhd12864/nhd12864.conf
-ExecStart=/opt/nhd12864/nhd12864_demo --spidev ${SPIDEV} --chip ${GPIOCHIP} --dc ${DC_LINE} --rst ${RST_LINE}
+ExecStart=/opt/nhd12864/nhd12864_demo --spidev ${SPIDEV} --chip ${GPIOCHIP} --dc ${DC_LINE} --rst ${RST_LINE} --font ${FONT} --px ${PX}
 Restart=on-failure
 
 [Install]

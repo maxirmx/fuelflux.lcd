@@ -2,6 +2,7 @@
 #include "gpio_gpiod.h"
 #include "st7565.h"
 #include "graphics.h"
+#include "ft_text.h"
 
 #include <iostream>
 #include <thread>
@@ -20,10 +21,13 @@ static int argint(int argc, char** argv, const char* key, int defv) {
 }
 
 int main(int argc, char** argv) {
-    std::string dev  = argval(argc, argv, "--spidev", "/dev/spidev0.0");
+    std::string dev  = argval(argc, argv, "--spidev", "/dev/spidev1.0");
     std::string chip = argval(argc, argv, "--chip", "/dev/gpiochip0");
-    int dc  = argint(argc, argv, "--dc", 25);
-    int rst = argint(argc, argv, "--rst", 17);
+    int dc  = argint(argc, argv, "--dc", 262);
+    int rst = argint(argc, argv, "--rst", 226);
+
+    std::string font = argval(argc, argv, "--font", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
+    int px = argint(argc, argv, "--px", 16);
 
     try {
         SpiLinux spi(dev);
@@ -37,22 +41,35 @@ int main(int argc, char** argv) {
         lcd.init();
 
         MonoGfx g(128, 64);
-        int x = 0;
+        FtText ft;
+        ft.load_font(font);
+        ft.set_pixel_size(px);
 
+        int t = 0;
         while (true) {
             g.clear();
-            g.text(2, 2, "NHD 128x64 (C++)", true);
-            g.hline(0, 127, 14, true);
-            g.rect(5, 20, 122, 58, true);
-            g.fill_rect(8, 24, 8 + (x % 110), 54, true);
+
+            // 8x16-like layout: 4 lines visible at px=16 (64px height)
+            // Demonstrate full English + Russian (incl. Ё/ё).
+            std::string l1 = "Hello, World!";
+            std::string l2 = "Привет, мир!";
+            std::string l3 = "Ёжик, съёмка";
+            std::string l4 = "t=" + std::to_string(t++);
+
+            ft.draw_utf8(g.fb(), 128, 64, 0, 0,  l1, true);
+            ft.draw_utf8(g.fb(), 128, 64, 0, 16, l2, true);
+            ft.draw_utf8(g.fb(), 128, 64, 0, 32, l3, true);
+            ft.draw_utf8(g.fb(), 128, 64, 0, 48, l4, true);
 
             lcd.set_framebuffer(g.fb());
-            x += 3;
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\\n";
-        std::cerr << "Verify /dev/spidev* exists and map GPIO via gpioinfo.\\n";
+        std::cerr << "Error: " << e.what() << "\n";
+        std::cerr << "Hints:\n";
+        std::cerr << "  - Ensure SPI1 overlay is enabled and " << dev << " exists.\n";
+        std::cerr << "  - Ensure font exists: " << font << "\n";
+        std::cerr << "  - Verify GPIO line offsets (libgpiod) using gpio readall/gpioinfo.\n";
         return 1;
     }
 }
