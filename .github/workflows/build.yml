@@ -34,8 +34,8 @@ jobs:
       
     - name: Check build artifacts
       run: |
-        test -f build/nhd12864_demo || (echo "nhd12864_demo not found" && exit 1)
-        echo "Build successful - nhd12864_demo created"
+        test -f build/lcd_demo || (echo "lcd_demo not found" && exit 1)
+        echo "Build successful - lcd_demo created"
     
     - name: Run tests
       run: cd build && ctest --output-on-failure
