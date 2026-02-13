@@ -96,19 +96,26 @@ void Ili9488::set_framebuffer_mono(const std::vector<uint8_t>& fb, uint16_t fg_r
 
     set_window(0, 0, width_ - 1, height_ - 1);
 
-    std::vector<uint8_t> line(static_cast<size_t>(width_) * 2);
+    // Build a full-frame RGB565 buffer and write it in a single SPI transaction
+    std::vector<uint8_t> frame(static_cast<size_t>(width_) * static_cast<size_t>(height_) * 2);
     dc_.set(true);
 
     for (int y = 0; y < height_; ++y) {
         const int page = y / 8;
         const uint8_t mask = static_cast<uint8_t>(1u << (y % 8));
         for (int x = 0; x < width_; ++x) {
-            const bool on = (fb[static_cast<size_t>(page * width_ + x)] & mask) != 0;
+            const bool on =
+                (fb[static_cast<size_t>(page * width_ + x)] & mask) != 0;
             const uint16_t pixel = on ? fg_rgb565 : bg_rgb565;
-            line[static_cast<size_t>(x) * 2] = static_cast<uint8_t>((pixel >> 8) & 0xFF);
-            line[static_cast<size_t>(x) * 2 + 1] = static_cast<uint8_t>(pixel & 0xFF);
+            const size_t pixel_index =
+                static_cast<size_t>(y) * static_cast<size_t>(width_) +
+                static_cast<size_t>(x);
+            const size_t byte_index = pixel_index * 2;
+            frame[byte_index] = static_cast<uint8_t>((pixel >> 8) & 0xFF);
+            frame[byte_index + 1] = static_cast<uint8_t>(pixel & 0xFF);
         }
-        spi_.write(line.data(), line.size());
     }
+
+    spi_.write(frame.data(), frame.size());
 }
 
