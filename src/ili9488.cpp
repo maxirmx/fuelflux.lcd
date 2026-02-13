@@ -41,7 +41,7 @@ std::this_thread::sleep_for(std::chrono::milliseconds(150));
 cmd(0x11); // Sleep out
 std::this_thread::sleep_for(std::chrono::milliseconds(120));
 
-set_rotation(1);
+set_rotation(3); // 270 degrees
 
 cmd(0x3A); // COLMOD
 const uint8_t pixel_format = 0x66; // 18-bit/pixel (RGB666) - required for ILI9488 SPI
