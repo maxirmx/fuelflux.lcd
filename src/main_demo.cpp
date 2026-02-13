@@ -1,6 +1,7 @@
 #include "four_line_display.h"
-#include "spi_linux.h"
 #include "gpio_gpiod.h"
+#include "ili9488.h"
+#include "spi_linux.h"
 #include "st7565.h"
 
 #include <iostream>
@@ -28,21 +29,39 @@ int main(int argc, char** argv) {
 
     // The other suggested option is: "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
     std::string font = argval(argc, argv, "--font", "/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf");
+    std::string display_type = argval(argc, argv, "--display", "st7565");
+    if (display_type != "st7565" && display_type != "ili9488") {
+        std::cerr << "Unsupported --display value: " << display_type << "\n";
+        std::cerr << "Use --display st7565 or --display ili9488\n";
+        return 1;
+    }
 
     try {
         // Initialize hardware
         SpiLinux spi(dev);
-        spi.open(8000000, 0);
+        const bool use_ili9488 = (display_type == "ili9488");
+        spi.open(use_ili9488 ? 32000000 : 8000000, 0);
 
         GpioLine dcLine(dc, true, false, chip, "nhd12864-dc");
         GpioLine rstLine(rst, true, true,  chip, "nhd12864-rst");
 
-        St7565 lcd(spi, dcLine, rstLine);
-        lcd.reset();
-        lcd.init();
+        St7565 mono_lcd(spi, dcLine, rstLine);
+        Ili9488 color_lcd(spi, dcLine, rstLine);
+
+        if (use_ili9488) {
+            color_lcd.reset();
+            color_lcd.init();
+            color_lcd.clear();
+        } else {
+            mono_lcd.reset();
+            mono_lcd.init();
+        }
 
         // Initialize the Four Line Display library
-        FourLineDisplay display(128, 64, 12, 28);
+        FourLineDisplay display(use_ili9488 ? 480 : 128,
+                                use_ili9488 ? 320 : 64,
+                                use_ili9488 ? 40 : 12,
+                                use_ili9488 ? 96 : 28);
         
         if (!display.initialize(font)) {
             std::cerr << "Failed to initialize FourLineDisplay library\n";
@@ -68,7 +87,11 @@ int main(int argc, char** argv) {
 
             // Render and send to LCD
             const auto& fb = display.render();
-            lcd.set_framebuffer(fb);
+            if (use_ili9488) {
+                color_lcd.set_framebuffer_mono(fb, 0xFFFF, 0x0000);
+            } else {
+                mono_lcd.set_framebuffer(fb);
+            }
 
             counter++;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -78,6 +101,7 @@ int main(int argc, char** argv) {
         std::cerr << "Error: " << e.what() << "\n";
         std::cerr << "Hints:\n";
         std::cerr << "  - Ensure SPI1 overlay is enabled and " << dev << " exists.\n";
+        std::cerr << "  - Use --display st7565 (default) or --display ili9488 for 480x320 SPI TFT.\n";
         std::cerr << "  - Ensure font exists: " << font << "\n";
         std::cerr << "  - Verify GPIO line offsets (libgpiod) using gpio readall/gpioinfo.\n";
         return 1;

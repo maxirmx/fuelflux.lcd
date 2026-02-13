@@ -20,6 +20,7 @@ target_compile_options(tools PRIVATE -Wall -Wextra -Wpedantic)
 # NHD12864 library (display-specific code)
 add_library(nhd12864
     src/st7565.cpp
+    src/ili9488.cpp
     src/graphics.cpp
     src/ft_text.cpp
     src/four_line_display.cpp
