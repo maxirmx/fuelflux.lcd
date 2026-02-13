@@ -74,6 +74,12 @@ int main(int argc, char** argv) {
 
             int counter = 0;
             while (true) {
+                display.reset();
+                display.init();
+                display.fill(0xF800);
+                std::this_thread::sleep_for(std::chrono::milliseconds(50000));
+
+
                 display.puts(0, "Status: Running");
                 display.puts(1, "Count: " + std::to_string(counter));
                 display.puts(2, "FuelFlux ILI9488");

@@ -34,18 +34,18 @@ void Ili9488::reset() {
 }
 
 void Ili9488::init() {
-    // Basic ILI9488 initialization for 4-wire SPI, RGB565 pixel writes.
-    cmd(0x01); // SWRESET
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+// Basic ILI9488 initialization for 4-wire SPI, RGB666 pixel writes.
+cmd(0x01); // SWRESET
+std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    cmd(0x11); // Sleep out
-    std::this_thread::sleep_for(std::chrono::milliseconds(120));
+cmd(0x11); // Sleep out
+std::this_thread::sleep_for(std::chrono::milliseconds(120));
 
-    set_rotation(1);
+set_rotation(1);
 
-    cmd(0x3A); // COLMOD
-    const uint8_t pixel_format = 0x55; // 16-bit/pixel (RGB565)
-    data(&pixel_format, 1);
+cmd(0x3A); // COLMOD
+const uint8_t pixel_format = 0x66; // 18-bit/pixel (RGB666) - required for ILI9488 SPI
+data(&pixel_format, 1);
 
     cmd(0x21); // Display inversion on (common for ILI9488 panels)
 
@@ -87,28 +87,34 @@ void Ili9488::set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1
     cmd(0x2C); // RAMWR
 }
 
-std::vector<uint8_t> Ili9488::mono_to_rgb565(const std::vector<uint8_t>& mono_fb,
+std::vector<uint8_t> Ili9488::mono_to_rgb666(const std::vector<uint8_t>& mono_fb,
                                              int width,
                                              int height,
                                              uint16_t fg_color565,
                                              uint16_t bg_color565) {
     if (width <= 0 || height <= 0 || (height % 8) != 0) {
-        throw std::runtime_error("Invalid framebuffer geometry for mono_to_rgb565");
+        throw std::runtime_error("Invalid framebuffer geometry for mono_to_rgb666");
     }
 
     const size_t expected_size = static_cast<size_t>(width * (height / 8));
     if (mono_fb.size() != expected_size) {
-        throw std::runtime_error("Framebuffer size mismatch in mono_to_rgb565");
+        throw std::runtime_error("Framebuffer size mismatch in mono_to_rgb666");
     }
 
-    std::vector<uint8_t> out(static_cast<size_t>(width * height * 2));
+    // RGB666: 3 bytes per pixel
+    std::vector<uint8_t> out(static_cast<size_t>(width * height * 3));
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             const uint16_t px = mono_pixel_on(mono_fb, width, x, y) ? fg_color565 : bg_color565;
-            const size_t out_idx = static_cast<size_t>((y * width + x) * 2);
-            out[out_idx] = static_cast<uint8_t>((px >> 8) & 0xFF);
-            out[out_idx + 1] = static_cast<uint8_t>(px & 0xFF);
+            // Convert RGB565 to RGB666 (6 bits per channel, left-aligned)
+            const uint8_t r = static_cast<uint8_t>(((px >> 11) & 0x1F) << 3);
+            const uint8_t g = static_cast<uint8_t>(((px >> 5) & 0x3F) << 2);
+            const uint8_t b = static_cast<uint8_t>((px & 0x1F) << 3);
+            const size_t out_idx = static_cast<size_t>((y * width + x) * 3);
+            out[out_idx] = r;
+            out[out_idx + 1] = g;
+            out[out_idx + 2] = b;
         }
     }
 
@@ -116,15 +122,19 @@ std::vector<uint8_t> Ili9488::mono_to_rgb565(const std::vector<uint8_t>& mono_fb
 }
 
 void Ili9488::fill(uint16_t color565) {
-    const uint8_t hi = static_cast<uint8_t>((color565 >> 8) & 0xFF);
-    const uint8_t lo = static_cast<uint8_t>(color565 & 0xFF);
+    // Convert RGB565 to RGB666 (6 bits per channel, left-aligned in each byte)
+    const uint8_t r = static_cast<uint8_t>(((color565 >> 11) & 0x1F) << 3);
+    const uint8_t g = static_cast<uint8_t>(((color565 >> 5) & 0x3F) << 2);
+    const uint8_t b = static_cast<uint8_t>((color565 & 0x1F) << 3);
 
     set_addr_window(0, 0, static_cast<uint16_t>(w_ - 1), static_cast<uint16_t>(h_ - 1));
 
-    std::vector<uint8_t> line(static_cast<size_t>(w_ * 2));
+    // RGB666: 3 bytes per pixel
+    std::vector<uint8_t> line(static_cast<size_t>(w_ * 3));
     for (int i = 0; i < w_; ++i) {
-        line[static_cast<size_t>(i * 2)] = hi;
-        line[static_cast<size_t>(i * 2 + 1)] = lo;
+        line[static_cast<size_t>(i * 3)] = r;
+        line[static_cast<size_t>(i * 3 + 1)] = g;
+        line[static_cast<size_t>(i * 3 + 2)] = b;
     }
 
     for (int y = 0; y < h_; ++y) {
@@ -135,11 +145,11 @@ void Ili9488::fill(uint16_t color565) {
 void Ili9488::set_mono_framebuffer(const std::vector<uint8_t>& fb,
                                    uint16_t fg_color565,
                                    uint16_t bg_color565) {
-    const auto rgb = mono_to_rgb565(fb, w_, h_, fg_color565, bg_color565);
+    const auto rgb = mono_to_rgb666(fb, w_, h_, fg_color565, bg_color565);
     set_addr_window(0, 0, static_cast<uint16_t>(w_ - 1), static_cast<uint16_t>(h_ - 1));
 
     // Send the converted framebuffer in line-sized chunks to avoid oversized SPI writes.
-    const size_t line_bytes = static_cast<size_t>(w_) * 2U; // RGB565: 2 bytes per pixel
+    const size_t line_bytes = static_cast<size_t>(w_) * 3U; // RGB666: 3 bytes per pixel
     const size_t total_bytes = rgb.size();
 
     for (int y = 0; y < h_; ++y) {

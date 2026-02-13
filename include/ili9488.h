@@ -19,7 +19,7 @@ public:
                               uint16_t fg_color565 = 0xFFFF,
                               uint16_t bg_color565 = 0x0000);
 
-    static std::vector<uint8_t> mono_to_rgb565(const std::vector<uint8_t>& mono_fb,
+    static std::vector<uint8_t> mono_to_rgb666(const std::vector<uint8_t>& mono_fb,
                                                int width,
                                                int height,
                                                uint16_t fg_color565 = 0xFFFF,
