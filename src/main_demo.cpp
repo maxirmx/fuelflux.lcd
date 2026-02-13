@@ -55,7 +55,10 @@ int main(int argc, char** argv) {
             Ili9488 lcd(spi, dcLine, rstLine, width, height);
             lcd.reset();
             lcd.init();
+            lcd.fill(0xF800);  // Red screen - should appear immediately
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));  // Wait 2 sec to see it
             lcd.fill(0x0000);
+
 
             FourLineDisplay display(width, height, small_font, large_font);
             if (!display.initialize(font)) {
