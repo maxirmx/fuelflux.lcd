@@ -74,9 +74,9 @@ int main(int argc, char** argv) {
 
             int counter = 0;
             while (true) {
-                display.reset();
-                display.init();
-                display.fill(0xF800);
+                lcd.reset();
+                lcd.init();
+                lcd.fill(0xF800);
                 std::this_thread::sleep_for(std::chrono::milliseconds(50000));
 
 
