@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(nhd12864_cpp LANGUAGES C CXX)
+project(lcd_demo_cpp LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,20 +17,21 @@ target_include_directories(tools PUBLIC include ${GPIOD_INCLUDE_DIRS})
 target_link_libraries(tools PUBLIC ${GPIOD_LIBRARIES})
 target_compile_options(tools PRIVATE -Wall -Wextra -Wpedantic)
 
-# NHD12864 library (display-specific code)
-add_library(nhd12864
+# Display library (display-specific code)
+add_library(lcd_display
     src/st7565.cpp
+    src/ili9488.cpp
     src/graphics.cpp
     src/ft_text.cpp
     src/four_line_display.cpp
 )
-target_include_directories(nhd12864 PUBLIC include ${FREETYPE_INCLUDE_DIRS})
-target_link_libraries(nhd12864 PUBLIC tools ${FREETYPE_LIBRARIES})
-target_compile_options(nhd12864 PRIVATE -Wall -Wextra -Wpedantic)
+target_include_directories(lcd_display PUBLIC include ${FREETYPE_INCLUDE_DIRS})
+target_link_libraries(lcd_display PUBLIC tools ${FREETYPE_LIBRARIES})
+target_compile_options(lcd_display PRIVATE -Wall -Wextra -Wpedantic)
 
 # Demo executable
-add_executable(nhd12864_demo src/main_demo.cpp)
-target_link_libraries(nhd12864_demo PRIVATE nhd12864 tools)
+add_executable(lcd_demo src/main_demo.cpp)
+target_link_libraries(lcd_demo PRIVATE lcd_display tools)
 
 # Testing with GoogleTest
 option(BUILD_TESTS "Build the tests" ON)
@@ -53,9 +54,19 @@ if(BUILD_TESTS)
     add_executable(test_four_line_display
         tests/test_four_line_display.cpp
     )
+    add_executable(test_ili9488
+        tests/test_ili9488.cpp
+    )
     target_link_libraries(test_four_line_display
         PRIVATE
-        nhd12864
+        lcd_display
+        tools
+        GTest::gtest
+        GTest::gtest_main
+    )
+    target_link_libraries(test_ili9488
+        PRIVATE
+        lcd_display
         tools
         GTest::gtest
         GTest::gtest_main
@@ -64,4 +75,5 @@ if(BUILD_TESTS)
     # Discover tests
     include(GoogleTest)
     gtest_discover_tests(test_four_line_display)
+    gtest_discover_tests(test_ili9488)
 endif()
