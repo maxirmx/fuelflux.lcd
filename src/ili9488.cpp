@@ -137,5 +137,24 @@ void Ili9488::set_mono_framebuffer(const std::vector<uint8_t>& fb,
                                    uint16_t bg_color565) {
     const auto rgb = mono_to_rgb565(fb, w_, h_, fg_color565, bg_color565);
     set_addr_window(0, 0, static_cast<uint16_t>(w_ - 1), static_cast<uint16_t>(h_ - 1));
-    data(rgb.data(), rgb.size());
+
+    // Send the converted framebuffer in line-sized chunks to avoid oversized SPI writes.
+    const size_t line_bytes = static_cast<size_t>(w_) * 2U; // RGB565: 2 bytes per pixel
+    const size_t total_bytes = rgb.size();
+
+    for (int y = 0; y < h_; ++y) {
+        const size_t offset = static_cast<size_t>(y) * line_bytes;
+        if (offset >= total_bytes) {
+            break;
+        }
+
+        const size_t remaining = total_bytes - offset;
+        const size_t chunk_size = remaining < line_bytes ? remaining : line_bytes;
+
+        if (chunk_size == 0) {
+            break;
+        }
+
+        data(rgb.data() + offset, chunk_size);
+    }
 }
