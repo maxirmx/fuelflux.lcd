@@ -1,6 +1,6 @@
 # ST7565/ILI9488 LCD C++ Libraries and Demo
 
-This project provides two C++ libraries for driving a 128x64 ST7565-class LCD on Linux, plus a demo application that renders a four-line status view. It targets boards like the Orange Pi Zero 2W but should work on any Linux system with spidev and libgpiod.
+This project provides two C++ libraries for driving 128x64 ST7565-class monochrome LCDs and 480x320 ILI9488-based TFT displays on Linux, plus a demo application that renders a four-line status view. It targets boards like the Orange Pi Zero 2W but should work on any Linux system with spidev and libgpiod.
 
 ## Contents
 
