@@ -341,12 +341,12 @@ TEST_F(FtTextTest, DrawVariousCyrillicLetters) {
     ft_text->load_font(font_path);
     ft_text->set_pixel_size(16);
     
-    // Test various Russian letters: А, Б, В, Г, Д, Е, Ё, Ж, З, И, Й, К, Л, М, Н, О, П, Р, С, Т, У, Ф, Х, Ц, Ч, Ш, Щ, Ъ, Ы, Ь, Э, Ю, Я
+    // Test uppercase Russian letters (subset of Cyrillic alphabet)
     std::vector<unsigned char> fb(128 * 64 / 8, 0);
     ft_text->draw_utf8(fb, 128, 64, 0, 0, "АБВГДЕЁЖЗИЙКЛМН");
     EXPECT_GT(count_nonzero_bytes(fb), 0u);
     
-    // Test lowercase: а, б, в, г, д, е, ё, ж, з, и, й, к, л, м, н, о, п, р, с, т, у, ф, х, ц, ч, ш, щ, ъ, ы, ь, э, ю, я
+    // Test lowercase Russian letters (subset of Cyrillic alphabet)
     std::vector<unsigned char> fb2(128 * 64 / 8, 0);
     ft_text->draw_utf8(fb2, 128, 64, 0, 0, "абвгдеёжзийклмн");
     EXPECT_GT(count_nonzero_bytes(fb2), 0u);
@@ -364,7 +364,7 @@ TEST_F(FtTextTest, DrawUtf8BoundaryCharacters) {
     ft_text->set_pixel_size(16);
     
     std::vector<unsigned char> fb(128 * 64 / 8, 0);
-    // Mix of 1-byte (A = 0x41), 2-byte (© = 0xC2 0xA9), 3-byte (€ = 0xE2 0x82 0xAC) UTF-8 characters
+    // Mix of 1-byte (ASCII), 2-byte, and 3-byte UTF-8 characters
     ft_text->draw_utf8(fb, 128, 64, 0, 0, "A©€");
     
     // Should render without crashing
