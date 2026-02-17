@@ -425,6 +425,24 @@ TEST_F(FtTextTest, DrawBeyondFramebuffer) {
     EXPECT_EQ(count_nonzero_bytes(fb), 0u);
 }
 
+// Test: Draw with undersized framebuffer (edge case)
+TEST_F(FtTextTest, DrawWithUndersizedFramebuffer) {
+    const std::string font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf";
+    
+    if (!font_exists(font_path)) {
+        GTEST_SKIP() << "Font file not available: " << font_path;
+    }
+    
+    ft_text->load_font(font_path);
+    ft_text->set_pixel_size(16);
+    
+    // Create an undersized framebuffer (only 100 bytes instead of 1024)
+    std::vector<unsigned char> fb(100, 0);
+    
+    // Should not crash even with undersized buffer
+    EXPECT_NO_THROW(ft_text->draw_utf8(fb, 128, 64, 0, 0, "Test"));
+}
+
 // Main function for running tests
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

@@ -49,6 +49,7 @@ static inline void fb_set(std::vector<unsigned char>& fb, int w, int h, int x, i
     int page = y / 8;
     int bit = y % 8;
     size_t idx = (size_t)page * (size_t)w + (size_t)x;
+    if (idx >= fb.size()) return;
     unsigned char mask = (unsigned char)(1u << bit);
     if (on) fb[idx] |= mask;
     else fb[idx] &= (unsigned char)~mask;
