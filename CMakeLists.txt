@@ -57,6 +57,9 @@ if(BUILD_TESTS)
     add_executable(test_ili9488
         tests/test_ili9488.cpp
     )
+    add_executable(test_ft_text
+        tests/test_ft_text.cpp
+    )
     target_link_libraries(test_four_line_display
         PRIVATE
         lcd_display
@@ -71,9 +74,17 @@ if(BUILD_TESTS)
         GTest::gtest
         GTest::gtest_main
     )
+    target_link_libraries(test_ft_text
+        PRIVATE
+        lcd_display
+        tools
+        GTest::gtest
+        GTest::gtest_main
+    )
 
     # Discover tests
     include(GoogleTest)
     gtest_discover_tests(test_four_line_display)
     gtest_discover_tests(test_ili9488)
+    gtest_discover_tests(test_ft_text)
 endif()
