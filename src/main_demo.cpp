@@ -76,10 +76,10 @@ int main(int argc, char** argv) {
 
             int counter = 0;
             while (true) {
-                display.puts(0, "Status: Running");
-                display.puts(1, "Count: " + std::to_string(counter));
+                display.puts(0, "Статус: Выполняется");
+                display.puts(1, "Счётчик: " + std::to_string(counter));
                 display.puts(2, "FuelFlux ILI9488");
-                display.puts(3, "Ver 2.0");
+                display.puts(3, "Версия 2.1");
 
                 const auto& fb = display.render();
                 lcd.set_mono_framebuffer(fb, 0xFFFF, 0x0000);
