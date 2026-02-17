@@ -19,24 +19,24 @@ TEST(Ili9488Test, MonoToRgb666ConvertsPixelsByBitLayout) {
 
     // y0: [on, off] => [red, blue]
     // RGB666: 3 bytes per pixel (R, G, B)
-    // 0xF800 (red in RGB565) => R=0xF8, G=0x00, B=0x00
-    EXPECT_EQ(rgb[0], 0xF8);
-    EXPECT_EQ(rgb[1], 0x00);
-    EXPECT_EQ(rgb[2], 0x00);
-    // 0x001F (blue in RGB565) => R=0x00, G=0x00, B=0xF8
-    EXPECT_EQ(rgb[3], 0x00);
-    EXPECT_EQ(rgb[4], 0x00);
-    EXPECT_EQ(rgb[5], 0xF8);
+    // 0xF800 (red in RGB565): red=(0xF800>>11)&0x1F=0x1F, then 0x1F<<3=0xF8
+    EXPECT_EQ(rgb[0], 0xF8);  // Red channel
+    EXPECT_EQ(rgb[1], 0x00);  // Green channel
+    EXPECT_EQ(rgb[2], 0x00);  // Blue channel
+    // 0x001F (blue in RGB565): blue=0x001F&0x1F=0x1F, then 0x1F<<3=0xF8
+    EXPECT_EQ(rgb[3], 0x00);  // Red channel
+    EXPECT_EQ(rgb[4], 0x00);  // Green channel
+    EXPECT_EQ(rgb[5], 0xF8);  // Blue channel
 
     // y1: [off, on] => [blue, red]
-    // 0x001F (blue in RGB565) => R=0x00, G=0x00, B=0xF8
-    EXPECT_EQ(rgb[6], 0x00);
-    EXPECT_EQ(rgb[7], 0x00);
-    EXPECT_EQ(rgb[8], 0xF8);
-    // 0xF800 (red in RGB565) => R=0xF8, G=0x00, B=0x00
-    EXPECT_EQ(rgb[9], 0xF8);
-    EXPECT_EQ(rgb[10], 0x00);
-    EXPECT_EQ(rgb[11], 0x00);
+    // 0x001F (blue in RGB565): blue=0x001F&0x1F=0x1F, then 0x1F<<3=0xF8
+    EXPECT_EQ(rgb[6], 0x00);   // Red channel
+    EXPECT_EQ(rgb[7], 0x00);   // Green channel
+    EXPECT_EQ(rgb[8], 0xF8);   // Blue channel
+    // 0xF800 (red in RGB565): red=(0xF800>>11)&0x1F=0x1F, then 0x1F<<3=0xF8
+    EXPECT_EQ(rgb[9], 0xF8);   // Red channel
+    EXPECT_EQ(rgb[10], 0x00);  // Green channel
+    EXPECT_EQ(rgb[11], 0x00);  // Blue channel
 }
 
 TEST(Ili9488Test, MonoToRgb666RejectsInvalidSize) {
