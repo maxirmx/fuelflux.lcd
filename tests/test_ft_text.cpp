@@ -364,7 +364,7 @@ TEST_F(FtTextTest, DrawUtf8BoundaryCharacters) {
     ft_text->set_pixel_size(16);
     
     std::vector<unsigned char> fb(128 * 64 / 8, 0);
-    // Mix of 1-byte (A), 2-byte (©), 3-byte (€) characters
+    // Mix of 1-byte (A = 0x41), 2-byte (© = 0xC2 0xA9), 3-byte (€ = 0xE2 0x82 0xAC) UTF-8 characters
     ft_text->draw_utf8(fb, 128, 64, 0, 0, "A©€");
     
     // Should render without crashing
