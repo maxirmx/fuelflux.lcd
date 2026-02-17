@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include "ili9488.h"
 
-TEST(Ili9488Test, MonoToRgb565ConvertsPixelsByBitLayout) {
+TEST(Ili9488Test, MonoToRgb666ConvertsPixelsByBitLayout) {
     const int width = 2;
     const int height = 8;
 
@@ -13,29 +13,38 @@ TEST(Ili9488Test, MonoToRgb565ConvertsPixelsByBitLayout) {
     // x=1: y0=0, y1=1, y2=0, y3=1, ... => 0b00001010
     const std::vector<uint8_t> mono = {0x05, 0x0A};
 
-    const auto rgb = Ili9488::mono_to_rgb565(mono, width, height, 0xF800, 0x001F);
+    const auto rgb = Ili9488::mono_to_rgb666(mono, width, height, 0xF800, 0x001F);
 
-    ASSERT_EQ(rgb.size(), static_cast<size_t>(width * height * 2));
+    ASSERT_EQ(rgb.size(), static_cast<size_t>(width * height * 3));
 
     // y0: [on, off] => [red, blue]
+    // RGB666: 3 bytes per pixel (R, G, B)
+    // 0xF800 (red in RGB565) => R=0xF8, G=0x00, B=0x00
     EXPECT_EQ(rgb[0], 0xF8);
     EXPECT_EQ(rgb[1], 0x00);
     EXPECT_EQ(rgb[2], 0x00);
-    EXPECT_EQ(rgb[3], 0x1F);
+    // 0x001F (blue in RGB565) => R=0x00, G=0x00, B=0xF8
+    EXPECT_EQ(rgb[3], 0x00);
+    EXPECT_EQ(rgb[4], 0x00);
+    EXPECT_EQ(rgb[5], 0xF8);
 
     // y1: [off, on] => [blue, red]
-    EXPECT_EQ(rgb[4], 0x00);
-    EXPECT_EQ(rgb[5], 0x1F);
-    EXPECT_EQ(rgb[6], 0xF8);
+    // 0x001F (blue in RGB565) => R=0x00, G=0x00, B=0xF8
+    EXPECT_EQ(rgb[6], 0x00);
     EXPECT_EQ(rgb[7], 0x00);
+    EXPECT_EQ(rgb[8], 0xF8);
+    // 0xF800 (red in RGB565) => R=0xF8, G=0x00, B=0x00
+    EXPECT_EQ(rgb[9], 0xF8);
+    EXPECT_EQ(rgb[10], 0x00);
+    EXPECT_EQ(rgb[11], 0x00);
 }
 
-TEST(Ili9488Test, MonoToRgb565RejectsInvalidSize) {
+TEST(Ili9488Test, MonoToRgb666RejectsInvalidSize) {
     const std::vector<uint8_t> mono = {0x00};
-    EXPECT_THROW((void)Ili9488::mono_to_rgb565(mono, 128, 64), std::runtime_error);
+    EXPECT_THROW((void)Ili9488::mono_to_rgb666(mono, 128, 64), std::runtime_error);
 }
 
-TEST(Ili9488Test, MonoToRgb565RejectsInvalidGeometry) {
+TEST(Ili9488Test, MonoToRgb666RejectsInvalidGeometry) {
     const std::vector<uint8_t> mono(16, 0x00);
-    EXPECT_THROW((void)Ili9488::mono_to_rgb565(mono, 8, 10), std::runtime_error);
+    EXPECT_THROW((void)Ili9488::mono_to_rgb666(mono, 8, 10), std::runtime_error);
 }
